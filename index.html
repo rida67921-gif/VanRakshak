@@ -1,0 +1,2097 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EIN — Environmental Intelligence Network</title>
+  <meta name="description" content="Interactive disaster-monitoring IoT dashboard featuring live risk mapping, digital twin simulation, RF mesh fire detection, and volumetric RF tomography engine." />
+  <meta property="og:title" content="EIN — Environmental Intelligence Network" />
+  <meta property="og:description" content="Interactive disaster-monitoring IoT dashboard featuring live risk mapping, digital twin simulation, RF mesh fire detection, and volumetric RF tomography engine." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-main: #070b13;
+      --bg-panel: #0d1527;
+      --bg-card: #121c33;
+      --bg-card-hover: #182544;
+      --border-subtle: #1e2c4f;
+      --border-accent: #2c3f70;
+      --text-primary: #e2e8f0;
+      --text-muted: #8493b2;
+      --text-dim: #4d5b7c;
+      --c-normal: #10b981;
+      --c-watch: #facc15;
+      --c-warning: #f97316;
+      --c-critical: #ef4444;
+      --c-offline: #64748b;
+      --c-flood: #38bdf8;
+      --c-fire: #fb923c;
+      --c-air: #94a3b8;
+      --c-purple: #a855f7;
+      --c-purple-bg: rgba(168, 85, 247, 0.12);
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+    .mono { font-family: var(--font-mono); }
+    
+    /* Header */
+    header {
+      background: #090f1d;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 10px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, #1e3a8a, #0f172a);
+      border: 1px solid #3b82f6;
+      color: #60a5fa;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+    .title-box h1 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: 0.5px;
+    }
+    .title-box p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .demo-tag {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 3px;
+      margin-left: 8px;
+    }
+    .sys-stats-strip {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      background: var(--bg-panel);
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      font-size: 12px;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat-val {
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+    
+    /* Navigation Tabs */
+    .tabs-bar {
+      display: flex;
+      background: #0b1222;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 20px;
+      gap: 4px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .tab-btn:hover {
+      color: #cbd5e1;
+      background: rgba(255,255,255,0.02);
+    }
+    .tab-btn.active {
+      color: #60a5fa;
+      border-bottom-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.08);
+    }
+    .tab-btn.tab-rd.active {
+      color: var(--c-purple);
+      border-bottom-color: var(--c-purple);
+      background: var(--c-purple-bg);
+    }
+    .rd-badge {
+      background: rgba(168, 85, 247, 0.2);
+      border: 1px solid rgba(168, 85, 247, 0.5);
+      color: #d8b4fe;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    /* Main Container */
+    main {
+      padding: 18px 20px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    .tab-panel {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Layout Grids */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+    }
+    @media (max-width: 1080px) {
+      .grid-2col { grid-template-columns: 1fr; }
+    }
+
+    /* Control Room Panels */
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    .panel-header {
+      background: #0a1120;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #93c5fd;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-body {
+      padding: 16px;
+    }
+
+    /* Tab 1: Live Risk Map */
+    .map-container {
+      position: relative;
+      background: #080d19;
+      border: 1px solid var(--border-accent);
+      border-radius: 6px;
+      height: 520px;
+      overflow: hidden;
+    }
+    .map-canvas-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .map-nodes-layer {
+      position: absolute;
+      inset: 0;
+    }
+    .map-legend {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(10, 17, 32, 0.9);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 11px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      z-index: 10;
+      backdrop-filter: blur(4px);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+    .dot-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .map-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+      z-index: 5;
+    }
+    .map-node:hover {
+      transform: translate(-50%, -50%) scale(1.35);
+      z-index: 20;
+    }
+    .node-pin {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 800;
+      color: #000;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .node-pulse {
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 1.5px solid currentColor;
+      opacity: 0.7;
+      animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.6); opacity: 0.9; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+    .node-tag {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(13, 21, 39, 0.9);
+      border: 1px solid var(--border-subtle);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 9px;
+      white-space: nowrap;
+      color: #cbd5e1;
+      pointer-events: none;
+    }
+
+    /* Alerts Panel */
+    .alerts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+    .alert-card {
+      background: var(--bg-card);
+      border-left: 3px solid var(--c-critical);
+      padding: 10px 12px;
+      border-radius: 0 6px 6px 0;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .alert-card:hover {
+      background: var(--bg-card-hover);
+      transform: translateX(2px);
+    }
+    .alert-card.warning { border-left-color: var(--c-warning); }
+    .alert-card.watch { border-left-color: var(--c-watch); }
+    .alert-text {
+      font-weight: 600;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .alert-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Modal / Detail Card */
+    .node-detail-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .node-detail-modal.active { display: flex; }
+    .modal-card {
+      background: #0f182e;
+      border: 1px solid var(--border-accent);
+      border-radius: 8px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      overflow: hidden;
+      animation: modalPop 0.2s ease-out;
+    }
+    @keyframes modalPop {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-head {
+      background: #090f1e;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0 6px;
+    }
+    .close-btn:hover { color: #fff; }
+
+    /* Badges & Status */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .badge-normal { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge-watch { background: rgba(250, 204, 21, 0.15); color: #fde047; border: 1px solid rgba(250, 204, 21, 0.4); }
+    .badge-warning { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.4); }
+    .badge-critical { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.5); }
+    .badge-offline { background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.4); }
+
+    /* Tab 2: Digital Twin Simulator */
+    .dt-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .select-styled {
+      background: #0a1122;
+      border: 1px solid var(--border-accent);
+      color: #e2e8f0;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+    .readout-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .readout-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 14px;
+      transition: border-color 0.3s ease, background 0.3s ease;
+    }
+    .readout-card.active-alert {
+      border-color: var(--c-critical);
+      background: rgba(239, 68, 68, 0.08);
+    }
+    .readout-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .readout-val {
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+      font-family: var(--font-mono);
+      transition: color 0.4s ease;
+    }
+    .readout-unit {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-left: 3px;
+    }
+
+    /* Simulator Action Controls */
+    .sim-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .btn-sim {
+      background: #15223e;
+      border: 1px solid var(--border-accent);
+      color: #cbd5e1;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .btn-sim:hover {
+      background: #1d2d52;
+      border-color: #3b82f6;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .btn-sim.btn-danger {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+    .btn-sim.btn-danger:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: var(--c-critical);
+      color: #fff;
+    }
+    .btn-sim.btn-reset {
+      border-color: #475569;
+      color: #94a3b8;
+    }
+    .btn-sim.btn-reset:hover {
+      background: #1e293b;
+      color: #f1f5f9;
+    }
+
+    /* Flashing Siren Alert Banner */
+    .siren-alert-banner {
+      display: none;
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.3));
+      border: 2px solid var(--c-critical);
+      padding: 12px 18px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      align-items: center;
+      justify-content: space-between;
+      animation: alertFlash 1s ease infinite alternate;
+    }
+    @keyframes alertFlash {
+      0% { border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+      100% { border-color: rgba(239, 68, 68, 1); box-shadow: 0 0 25px rgba(239, 68, 68, 0.6); }
+    }
+    .siren-icon {
+      font-size: 22px;
+      animation: sirenSpin 0.7s infinite alternate;
+    }
+    @keyframes sirenSpin {
+      0% { transform: rotate(-15deg) scale(1); }
+      100% { transform: rotate(15deg) scale(1.2); }
+    }
+
+    /* Sensor Failure Explanation Box */
+    .failure-explanation {
+      display: none;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: #fca5a5;
+    }
+
+    /* Reasoning & Logs Box */
+    .reasoning-box {
+      background: #080d19;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #93c5fd;
+      line-height: 1.6;
+    }
+
+    /* Fire Mesh Sub-Graph in Tab 2 */
+    .dt-mesh-subgraph {
+      display: none;
+      background: #090f1d;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 14px;
+      margin-top: 14px;
+    }
+
+    /* Tab 3: RF Mesh Network View */
+    .mesh-main-view {
+      position: relative;
+      background: #070d1a;
+      border: 1px solid var(--border-accent);
+      border-radius: 6px;
+      height: 480px;
+      overflow: hidden;
+    }
+    .heartbeat-panel {
+      background: #060a14;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 12px;
+      height: 480px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .log-line {
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      word-break: break-all;
+    }
+    .log-ok { color: #34d399; }
+    .log-warn { color: #fbbf24; }
+    .log-crit { color: #f87171; }
+    .fire-spread-banner {
+      display: none;
+      background: rgba(249, 115, 22, 0.15);
+      border: 1px solid var(--c-warning);
+      color: #fdba74;
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    /* Tab 4: Volumetric RF Tomography Engine (Purple Theme) */
+    .rd-theme {
+      --border-accent: #6b21a8;
+    }
+    .rd-banner-note {
+      font-size: 11px;
+      font-style: italic;
+      color: #c084fc;
+      margin-bottom: 12px;
+      padding: 6px 12px;
+      background: rgba(168, 85, 247, 0.08);
+      border-left: 3px solid var(--c-purple);
+      border-radius: 0 4px 4px 0;
+    }
+    .tomography-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 980px) {
+      .tomography-grid { grid-template-columns: 1fr; }
+    }
+    .pyrolysis-box {
+      background: rgba(239, 68, 68, 0.06);
+      border: 1px dashed rgba(239, 68, 68, 0.4);
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .matrix-display {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-align: center;
+      background: #080d19;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #3b2064;
+    }
+    .matrix-cell {
+      background: #131b33;
+      padding: 6px 4px;
+      border-radius: 3px;
+      color: #c084fc;
+    }
+    .vector-cells {
+      display: flex;
+      gap: 6px;
+      margin: 8px 0;
+    }
+    .vector-cell {
+      flex: 1;
+      background: #111a33;
+      border: 1px solid #3b2568;
+      color: #a78bfa;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 6px 2px;
+      text-align: center;
+      border-radius: 3px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .vector-cell.active-shift {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+      color: #f87171;
+    }
+    .packet-transit-track {
+      position: relative;
+      height: 32px;
+      background: #090e1c;
+      border: 1px dashed #4c1d95;
+      border-radius: 4px;
+      margin: 12px 0;
+      overflow: hidden;
+    }
+    .packet-icon {
+      position: absolute;
+      top: 5px;
+      left: 6px;
+      background: #9333ea;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      transition: left 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px #9333ea;
+      white-space: nowrap;
+    }
+    .central-dash-box {
+      background: #0c1428;
+      border: 1px solid #432173;
+      border-radius: 6px;
+      padding: 12px;
+      transition: all 0.4s ease;
+    }
+    .central-dash-box.lit-up {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: #c084fc;
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+    }
+    .pillars-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    @media (max-width: 900px) {
+      .pillars-strip { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 500px) {
+      .pillars-strip { grid-template-columns: 1fr; }
+    }
+    .pillar-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 12px;
+    }
+    .pillar-num {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--c-purple);
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+    .pillar-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-bottom: 4px;
+    }
+    .pillar-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Persistent Header -->
+  <header>
+    <div class="brand-group">
+      <div class="logo-badge">EIN</div>
+      <div class="title-box">
+        <h1>
+          Environmental Intelligence Network — Live Monitoring
+          <span class="demo-tag">DEMO DATA</span>
+        </h1>
+        <p class="mono">DISASTER-MONITORING IOT TELEMETRY CORE // IN865 LORAWAN</p>
+      </div>
+    </div>
+    <div class="sys-stats-strip">
+      <div class="stat-item">
+        <span class="stat-label">Total Nodes</span>
+        <span class="stat-val" id="stat-total-nodes">18</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Active Alerts</span>
+        <span class="stat-val" style="color: var(--c-critical);" id="stat-alerts">3</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Offline</span>
+        <span class="stat-val" style="color: var(--c-offline);" id="stat-offline">1</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Avg Battery</span>
+        <span class="stat-val" style="color: var(--c-normal);" id="stat-battery">84%</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">UTC Clock</span>
+        <span class="stat-val" id="header-clock">--:--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Bar -->
+  <nav class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('tab-live-map')">
+      <span>🌐 LIVE RISK MAP</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-digital-twin')">
+      <span>⚙️ DIGITAL TWIN SIMULATOR</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('tab-rf-mesh')">
+      <span>📡 RF MESH NETWORK (FIRE)</span>
+    </button>
+    <button class="tab-btn tab-rd" onclick="switchTab('tab-rf-tomography')">
+      <span>🔬 ADVANCED: RF TOMOGRAPHY ENGINE</span>
+      <span class="rd-badge">R&D / ADVANCED MODE</span>
+    </button>
+  </nav>
+
+  <main>
+    <!-- TAB 1: LIVE RISK MAP -->
+    <div id="tab-live-map" class="tab-panel active">
+      <div class="grid-2col">
+        <!-- Main Map Area -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>REGIONAL SENSOR TOPOLOGY GRID</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-sim" style="padding:4px 10px; font-size:11px;" onclick="filterMap('all')">All</button>
+              <button class="btn-sim" style="padding:4px 10px; font-size:11px;" onclick="filterMap('Flood')">🌊 Flood</button>
+              <button class="btn-sim" style="padding:4px 10px; font-size:11px;" onclick="filterMap('Fire')">🔥 Fire</button>
+              <button class="btn-sim" style="padding:4px 10px; font-size:11px;" onclick="filterMap('Air Quality')">🌫️ Air</button>
+            </div>
+          </div>
+          <div class="panel-body" style="padding: 10px;">
+            <div class="map-container" id="map-container">
+              <canvas id="map-grid-canvas" class="map-canvas-bg"></canvas>
+              <div id="map-nodes-layer" class="map-nodes-layer"></div>
+              <div class="map-legend">
+                <div class="legend-item"><span class="dot-indicator" style="background:var(--c-normal);"></span> Normal</div>
+                <div class="legend-item"><span class="dot-indicator" style="background:var(--c-watch);"></span> Watch</div>
+                <div class="legend-item"><span class="dot-indicator" style="background:var(--c-warning);"></span> Warning</div>
+                <div class="legend-item"><span class="dot-indicator" style="background:var(--c-critical);"></span> Critical</div>
+                <div class="legend-item"><span class="dot-indicator" style="background:var(--c-offline);"></span> Offline</div>
+                <div style="border-left:1px solid #334155; height:12px; margin:0 4px;"></div>
+                <div class="legend-item">🌊 Flood</div>
+                <div class="legend-item">🔥 Fire</div>
+                <div class="legend-item">🌫️ Air Quality</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Alerts Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>🚨 ACTIVE ALERTS</span>
+            </div>
+            <span class="mono" style="font-size:11px; color:var(--text-muted);" id="alert-counter-badge">3 LIVE</span>
+          </div>
+          <div class="panel-body">
+            <div class="alerts-list" id="alerts-container">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: DIGITAL TWIN SIMULATOR -->
+    <div id="tab-digital-twin" class="tab-panel">
+      <!-- Siren Alert Banner -->
+      <div id="dt-siren-banner" class="siren-alert-banner">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span class="siren-icon">🚨</span>
+          <div>
+            <div style="font-weight:800; font-size:14px; color:#fee2e2;">CRITICAL ALERT — DOWNSTREAM WARNING ISSUED</div>
+            <div style="font-size:11px; color:#fca5a5;">Automated sirens activated in Assam Sector 4 | CAP Protocol Broadcast triggered</div>
+          </div>
+        </div>
+        <span class="mono" style="font-size:11px; color:#fff; background:rgba(0,0,0,0.4); padding:4px 8px; border-radius:4px;">DISASTER LEVEL 4</span>
+      </div>
+
+      <!-- Sensor Failure Banner -->
+      <div id="dt-failure-box" class="failure-explanation">
+        <strong>⚠️ ANOMALY DETECTED:</strong> Reading inconsistent with rate-of-change history — flagged, not trusted, maintenance ticket auto-generated.
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>EDGE DIGITAL TWIN TELEMETRY ENGINE</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <label style="font-size:12px; color:var(--text-muted);">Target Node:</label>
+            <select id="dt-node-select" class="select-styled" onchange="onDtNodeChange(this.value)">
+              <option value="F-102">Flood Node F-102 (Brahmaputra Basin)</option>
+              <option value="F-105">Flood Node F-105 (Guwahati Station)</option>
+              <option value="W-204">Fire Node W-204 (Kaziranga Buffer)</option>
+              <option value="A-301">Air Quality Node A-301 (Sector 7)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <!-- Readout Cards Grid -->
+          <div class="readout-grid" id="dt-readouts-container">
+            <div class="readout-card" id="card-m1">
+              <div class="readout-title" id="lbl-m1">Water Level</div>
+              <div><span class="readout-val" id="val-m1">1.84</span><span class="readout-unit" id="unit-m1">m</span></div>
+            </div>
+            <div class="readout-card" id="card-m2">
+              <div class="readout-title" id="lbl-m2">Rise Rate</div>
+              <div><span class="readout-val" id="val-m2">+1.2</span><span class="readout-unit" id="unit-m2">cm/10min</span></div>
+            </div>
+            <div class="readout-card" id="card-m3">
+              <div class="readout-title" id="lbl-m3">Rainfall</div>
+              <div><span class="readout-val" id="val-m3">4.5</span><span class="readout-unit" id="unit-m3">mm/hr</span></div>
+            </div>
+            <div class="readout-card" id="card-m4">
+              <div class="readout-title" id="lbl-m4">AI Flood Probability</div>
+              <div><span class="readout-val" id="val-m4" style="color:var(--c-normal);">8%</span></div>
+            </div>
+            <div class="readout-card" id="card-m5">
+              <div class="readout-title" id="lbl-m5">Confidence</div>
+              <div><span class="readout-val" id="val-m5">94%</span></div>
+            </div>
+            <div class="readout-card" id="card-m6">
+              <div class="readout-title">Risk Level Badge</div>
+              <div style="margin-top:6px;">
+                <span class="status-badge badge-normal" id="val-risk-badge">NORMAL</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fire Subgraph & RF Degradation View (Appears during RF anomaly) -->
+          <div id="dt-rf-subgraph-box" class="dt-mesh-subgraph">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:12px; font-weight:700; color:#fdba74;">🔥 LOCAL RF MESH LINK ATTENUATION (WILDFIRE SMOKE ABSORPTION)</span>
+              <span id="dt-spread-indicator" style="display:none; background:#ea580c; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:4px;">SPREAD DIRECTION: NE</span>
+            </div>
+            <div style="display:grid; grid-template-columns:280px 1fr; gap:16px; align-items:center;">
+              <svg id="dt-mini-mesh-svg" width="260" height="140" style="background:#060b16; border-radius:6px; border:1px solid #1e293b;"></svg>
+              <div style="font-size:11px; font-family:var(--font-mono); color:#94a3b8; line-height:1.8;">
+                <div>Link 1 (W-204 ↔ W-201): <span id="dt-rf-l1" style="color:#34d399;">-74 dBm (SNR 9.2dB)</span></div>
+                <div>Link 2 (W-204 ↔ W-202): <span id="dt-rf-l2" style="color:#34d399;">-77 dBm (SNR 8.4dB)</span></div>
+                <div>Link 3 (W-204 ↔ W-203): <span id="dt-rf-l3" style="color:#34d399;">-79 dBm (SNR 7.8dB)</span></div>
+                <div style="color:var(--text-dim); margin-top:4px;">LoRa 868MHz ionization attenuation threshold: -105dBm</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Simulator Controls -->
+          <div style="margin-top:16px;">
+            <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px; font-weight:700;">Scripted Scenarios (Animated Live Demonstration)</div>
+            <div class="sim-controls">
+              <button class="btn-sim btn-danger" onclick="triggerScenario('rain')">
+                <span>🌧️ Simulate Heavy Rain (Flood Wave)</span>
+              </button>
+              <button class="btn-sim" style="border-color:#eab308; color:#fde047;" onclick="triggerScenario('sensor-failure')">
+                <span>⚠️ Simulate Sensor Failure</span>
+              </button>
+              <button class="btn-sim" style="border-color:#f97316; color:#fdba74;" onclick="triggerScenario('fire-rf')">
+                <span>🔥 Simulate Fire Risk (RF Anomaly)</span>
+              </button>
+              <button class="btn-sim btn-reset" onclick="triggerScenario('reset')">
+                <span>🔄 Reset to Normal</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- AI Reasoning Live Output -->
+          <div style="margin-top:16px;">
+            <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase; margin-bottom:6px; font-weight:700;">Explainable AI Reasoning Log</div>
+            <div class="reasoning-box" id="dt-reasoning-text">
+              Water level 1.84m + rise rate +1.2cm/10min + rainfall 4.5mm/hr → hydro-fused probability 8% [Confidence 94%]. Hydrological conditions stable within seasonal catchment norms.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: RF MESH NETWORK VIEW (FIRE DETECTION) -->
+    <div id="tab-rf-mesh" class="tab-panel">
+      <!-- Spread Banner -->
+      <div id="mesh-spread-banner" class="fire-spread-banner">
+        🚨 Zone B-12: Fire confidence 87%, 3 nodes affected, Spread direction NE. Immediate containment protocol initiated.
+      </div>
+
+      <div class="grid-2col">
+        <!-- SVG Mesh Topology -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>FOREST CANOPY LORA RF TOPOLOGY (~10 NODES)</span>
+            </div>
+            <button class="btn-sim btn-danger" style="padding:4px 12px; font-size:11px;" onclick="triggerFireEventMesh()">
+              🔥 Trigger Fire Event at Node N-08
+            </button>
+          </div>
+          <div class="panel-body" style="padding:10px;">
+            <div class="mesh-main-view">
+              <svg id="rf-mesh-svg" width="100%" height="100%" viewBox="0 0 700 460"></svg>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:8px; display:flex; justify-content:space-between;">
+              <span>Hover over links to inspect live RSSI / SNR telemetry values.</span>
+              <span class="mono">TX Power: 14dBm | SF: 9 | BW: 125kHz</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Heartbeat Log -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>HEARTBEAT LOG (LORA MESH)</span>
+            </div>
+            <span class="mono" style="font-size:11px; color:#34d399;">● LIVE STREAM</span>
+          </div>
+          <div class="panel-body">
+            <div class="heartbeat-panel" id="heartbeat-log-box">
+              <!-- Logs dynamic -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: ADVANCED: RF TOMOGRAPHY ENGINE -->
+    <div id="tab-rf-tomography" class="tab-panel rd-theme">
+      <div class="rd-banner-note">
+        * Advanced research-stage detection layer — demonstrates the scientific roadmap beyond the core working prototype.
+      </div>
+
+      <div class="tomography-grid">
+        <!-- Left: Volumetric Mesh Grid & Pre-Ignition -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title" style="color:#c084fc;">
+              <span>1. VOLUMETRIC RF MESH GRID (FULL MESH INTERSECTING LINKS)</span>
+            </div>
+            <span class="rd-badge">868 MHz TDMA</span>
+          </div>
+          <div class="panel-body">
+            <div style="position:relative; height:280px; background:#070a14; border-radius:6px; border:1px solid #3b2064;">
+              <svg id="tomo-mesh-svg" width="100%" height="100%" viewBox="0 0 500 280"></svg>
+            </div>
+            <div style="font-size:11px; color:#a78bfa; margin-top:6px; text-align:center;">
+              Full Mesh Communication (6 Intersecting Links) — Tomographic Ray Attenuation
+            </div>
+
+            <!-- Pre-Ignition / Pyrolysis Zone Box -->
+            <div class="pyrolysis-box">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:11px; font-weight:700; color:#fca5a5;">PRE-IGNITION / PYROLYSIS ZONE</span>
+                <span style="font-size:10px; color:#cbd5e1;">Connected to Node 1 via Periodic Sensing</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+                <div style="background:#0f1526; padding:8px; border-radius:4px; border:1px solid rgba(239,68,68,0.3);">
+                  <div style="font-size:10px; color:#94a3b8;">Thermal RF Jitter</div>
+                  <div class="mono" style="font-size:18px; font-weight:800; color:#f87171;" id="tomo-rf-jitter">7.4 Hz</div>
+                  <div style="font-size:9px; color:#64748b;">Normal baseline: 5 - 15 Hz</div>
+                </div>
+                <div style="background:#0f1526; padding:8px; border-radius:4px; border:1px solid rgba(239,68,68,0.3);">
+                  <div style="font-size:10px; color:#94a3b8;">CO / Terpene Gas Pulse</div>
+                  <div class="mono" style="font-size:18px; font-weight:800; color:#fbbf24;" id="tomo-gas-pulse">4 ppm</div>
+                  <div style="font-size:9px; color:#64748b;">Pre-ignition threshold: 15 ppm</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Cluster Master Gateway & Inversion -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title" style="color:#c084fc;">
+              <span>2. CLUSTER MASTER GATEWAY (REAL-TIME INVERSION)</span>
+            </div>
+            <span class="mono" style="font-size:11px; color:#a78bfa;">TIKHONOV REGULARIZED</span>
+          </div>
+          <div class="panel-body">
+            <!-- Aggregated Link Vector (y) -->
+            <div style="font-size:11px; color:#cbd5e1; font-weight:600;">
+              Aggregated Link Matrix Vector (y) — 6 Channels:
+            </div>
+            <div class="vector-cells" id="tomo-vector-cells">
+              <div class="vector-cell" id="vc-0">-0.2</div>
+              <div class="vector-cell" id="vc-1">+0.1</div>
+              <div class="vector-cell" id="vc-2">-0.3</div>
+              <div class="vector-cell" id="vc-3">+0.0</div>
+              <div class="vector-cell" id="vc-4">-0.1</div>
+              <div class="vector-cell" id="vc-5">+0.2</div>
+            </div>
+
+            <!-- Inversion Equation & Matrix -->
+            <div style="margin:12px 0; background:#0a0f20; padding:10px; border-radius:6px; border:1px solid #3b2064;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span class="mono" style="font-size:13px; font-weight:700; color:#f1f5f9;">x = K · y (Inverse Solution)</span>
+                <span style="font-size:10px; color:#a78bfa;">Rothermel Model: ACTIVE</span>
+              </div>
+              <div class="matrix-display" id="tomo-matrix-display">
+                <!-- 16 numbers -->
+              </div>
+            </div>
+
+            <!-- Reconstructed 2D Heatmap (Canvas) -->
+            <div style="display:grid; grid-template-columns:140px 1fr; gap:12px; align-items:center;">
+              <div>
+                <div style="font-size:10px; color:#a78bfa; margin-bottom:4px; font-weight:600;">Reconstructed Hazard Heatmap</div>
+                <canvas id="tomo-heatmap-canvas" width="130" height="130" style="border:1px solid #3b2064; border-radius:4px; background:#000;"></canvas>
+              </div>
+              <div>
+                <div style="font-size:11px; color:var(--text-muted); line-height:1.5;">
+                  Intensity distribution reconstructed across spatial voxels using linear regularization matrix inversion.
+                </div>
+                <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:11px; color:#cbd5e1;">Hazard Detected?</span>
+                  <span class="status-badge badge-normal" id="tomo-hazard-badge">NO — Continue Monitoring</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Packet Transit to Central System -->
+            <div style="margin-top:14px;">
+              <div style="font-size:10px; color:var(--text-dim); text-transform:uppercase; font-weight:700;">Transmit Data to Central System (LoRaWAN Backhaul — IN865)</div>
+              <div class="packet-transit-track">
+                <div class="packet-icon" id="tomo-packet">📦 CAP-LoRaWAN Packet</div>
+              </div>
+            </div>
+
+            <!-- Disaster Control Dashboard Box -->
+            <div class="central-dash-box" id="tomo-central-box">
+              <div style="font-size:11px; font-weight:700; color:#e2e8f0; margin-bottom:4px;">Disaster Control Dashboard Integration</div>
+              <div style="font-size:11px; color:#94a3b8;" id="tomo-central-status">
+                Waiting for anomalous packet reception...
+              </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div style="display:flex; gap:10px; margin-top:14px;">
+              <button class="btn-sim" style="background:#581c87; border-color:#9333ea; color:#f3e8ff; flex:1;" onclick="triggerPreIgnitionEvent()">
+                ⚡ Trigger Pre-Ignition Event
+              </button>
+              <button class="btn-sim btn-reset" onclick="resetPreIgnitionEvent()">
+                🔄 Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Strip: 4 Core Pillars -->
+      <div class="pillars-strip">
+        <div class="pillar-card">
+          <div class="pillar-num">PILLAR 01</div>
+          <div class="pillar-title">Multi-Stage Early Detection</div>
+          <div class="pillar-desc">Vapor Pressure Deficit (VPD), CO/Terpenes pre-combustion gases, and Sub-GHz RF scintillation sensing prior to visible thermal signatures.</div>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-num">PILLAR 02</div>
+          <div class="pillar-title">Two-Tier Communication</div>
+          <div class="pillar-desc">Low-latency Sub-GHz FSK TDMA mesh clustering at the ground canopy combined with long-range LoRaWAN IN865 gateway backhauls.</div>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-num">PILLAR 03</div>
+          <div class="pillar-title">Real-Time Edge AI Analytics</div>
+          <div class="pillar-desc">Tikhonov Regularized tomographic matrix inversion running on gateway MCU coupled with physics-informed Rothermel spread prediction.</div>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-num">PILLAR 04</div>
+          <div class="pillar-title">Hardware & Economic Viability</div>
+          <div class="pillar-desc">Ruggedized IP67 enclosure, solar-harvesting LiFePO4 battery chemistry (5+ year lifespan), and autonomous self-healing topology.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Node Detail Modal -->
+  <div id="node-modal" class="node-detail-modal" onclick="closeNodeModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <div>
+          <span style="font-weight:700; font-size:14px;" id="modal-node-id">NODE F-102</span>
+          <span style="font-size:12px; color:var(--text-muted); margin-left:8px;" id="modal-hazard-type">Flood Sensor</span>
+        </div>
+        <button class="close-btn" onclick="closeNodeModal()">&times;</button>
+      </div>
+      <div style="padding:16px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+          <div>
+            <div style="font-size:11px; color:var(--text-dim);">SENSOR HEALTH</div>
+            <span class="status-badge badge-normal" id="modal-health">Normal</span>
+          </div>
+          <div>
+            <div style="font-size:11px; color:var(--text-dim);">AI CONFIDENCE</div>
+            <div class="mono" style="font-weight:700; color:#38bdf8;" id="modal-confidence">91%</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:var(--text-dim);">BATTERY %</div>
+            <div class="mono" style="font-weight:700;" id="modal-battery">88%</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:var(--text-dim);">CONNECTIVITY</div>
+            <div class="mono" style="font-weight:700; color:#34d399;" id="modal-conn">LoRa OK (-78 dBm)</div>
+          </div>
+        </div>
+
+        <div style="background:#090e1c; padding:10px; border-radius:6px; border:1px solid var(--border-subtle); margin-bottom:14px;">
+          <div style="font-size:11px; color:var(--text-muted); margin-bottom:6px;">Current Telemetry Readings:</div>
+          <div class="mono" style="font-size:12px; color:#e2e8f0;" id="modal-readings">
+            Water Level: 3.72m | Rise: +12cm/10min | Rain: 58mm/hr
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:11px; color:var(--text-muted); margin-bottom:6px;">Historical Trend (Past 6 Hours):</div>
+          <svg id="modal-sparkline" width="100%" height="60" style="background:#090f1e; border-radius:4px; border:1px solid #1e293b;"></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vanilla Script -->
+  <script>
+    // System Data & State
+    const SENSOR_NODES = [
+      { id: 'F-101', type: 'Flood', x: 18, y: 32, status: 'Normal', health: 'Normal', bat: 89, val: 'Water: 1.2m', conf: 96, sector: 'Assam North' },
+      { id: 'F-102', type: 'Flood', x: 28, y: 44, status: 'Critical', health: 'Normal', bat: 84, val: 'Water: 3.72m', conf: 91, sector: 'Assam sector' },
+      { id: 'F-103', type: 'Flood', x: 22, y: 65, status: 'Warning', health: 'Normal', bat: 78, val: 'Water: 2.9m', conf: 88, sector: 'Brahmaputra South' },
+      { id: 'F-104', type: 'Flood', x: 38, y: 72, status: 'Watch', health: 'Normal', bat: 92, val: 'Water: 2.1m', conf: 85, sector: 'Majuli Reach' },
+      { id: 'F-105', type: 'Flood', x: 45, y: 55, status: 'Normal', health: 'Normal', bat: 81, val: 'Water: 1.5m', conf: 94, sector: 'Guwahati East' },
+      { id: 'F-106', type: 'Flood', x: 52, y: 38, status: 'Offline', health: 'Failed', bat: 0, val: 'No Signal', conf: 0, sector: 'Tezpur Basin' },
+      
+      { id: 'W-201', type: 'Fire', x: 65, y: 22, status: 'Normal', health: 'Normal', bat: 90, val: 'Temp: 28°C', conf: 95, sector: 'Kaziranga Forest' },
+      { id: 'W-202', type: 'Fire', x: 74, y: 35, status: 'Watch', health: 'Normal', bat: 86, val: 'Temp: 34°C', conf: 82, sector: 'Manas Foothills' },
+      { id: 'W-203', type: 'Fire', x: 82, y: 48, status: 'Normal', health: 'Normal', bat: 93, val: 'Temp: 27°C', conf: 97, sector: 'Orang Buffer' },
+      { id: 'W-204', type: 'Fire', x: 70, y: 60, status: 'Warning', health: 'Normal', bat: 74, val: 'Temp: 42°C', conf: 74, sector: 'Western Ghats' },
+      { id: 'W-205', type: 'Fire', x: 85, y: 70, status: 'Critical', health: 'Normal', bat: 65, val: 'Temp: 58°C', conf: 89, sector: 'Namdapha Range' },
+      { id: 'W-206', type: 'Fire', x: 60, y: 78, status: 'Normal', health: 'Normal', bat: 88, val: 'Temp: 26°C', conf: 96, sector: 'Nameri Reserve' },
+
+      { id: 'A-301', type: 'Air Quality', x: 35, y: 20, status: 'Warning', health: 'Normal', bat: 82, val: 'PM2.5: 165', conf: 62, sector: 'Industrial Belt' },
+      { id: 'A-302', type: 'Air Quality', x: 48, y: 25, status: 'Normal', health: 'Normal', bat: 95, val: 'PM2.5: 38', conf: 92, sector: 'Civic Center' },
+      { id: 'A-303', type: 'Air Quality', x: 15, y: 80, status: 'Normal', health: 'Normal', bat: 91, val: 'PM2.5: 42', conf: 94, sector: 'Wetland Outskirts' },
+      { id: 'A-304', type: 'Air Quality', x: 55, y: 85, status: 'Watch', health: 'Normal', bat: 79, val: 'PM2.5: 110', conf: 78, sector: 'Suburban Line' },
+      { id: 'A-305', type: 'Air Quality', x: 88, y: 15, status: 'Normal', health: 'Normal', bat: 87, val: 'PM2.5: 29', conf: 98, sector: 'Eco Haven' },
+      { id: 'A-306', type: 'Air Quality', x: 30, y: 88, status: 'Normal', health: 'Normal', bat: 84, val: 'PM2.5: 35', conf: 95, sector: 'Valley Depot' }
+    ];
+
+    let currentMapFilter = 'all';
+
+    // Tab Navigation
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(tabId)) {
+          btn.classList.add('active');
+        }
+      });
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      const activePanel = document.getElementById(tabId);
+      if (activePanel) activePanel.classList.add('active');
+
+      if (tabId === 'tab-live-map') renderMapGrid();
+      if (tabId === 'tab-rf-mesh') renderMeshGraph();
+      if (tabId === 'tab-rf-tomography') {
+        renderTomographyMesh();
+        renderTomoHeatmap(0.1);
+        renderTomoMatrix();
+      }
+    }
+
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      const str = now.toISOString().slice(11, 19) + ' UTC';
+      document.getElementById('header-clock').innerText = str;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // TAB 1: MAP GRID DRAWING
+    function renderMapGrid() {
+      const canvas = document.getElementById('map-grid-canvas');
+      if (!canvas) return;
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Draw subtle grid & topography lines
+      ctx.strokeStyle = 'rgba(30, 48, 80, 0.4)';
+      ctx.lineWidth = 1;
+      const step = 40;
+      for (let x = 0; x < w; x += step) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      for (let y = 0; y < h; y += step) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // Draw river basin spline (stylized geography)
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+      ctx.lineWidth = 28;
+      ctx.beginPath();
+      ctx.moveTo(w * 0.05, h * 0.85);
+      ctx.bezierCurveTo(w * 0.25, h * 0.6, w * 0.4, h * 0.3, w * 0.95, h * 0.45);
+      ctx.stroke();
+
+      // Forest sector contour
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.04)';
+      ctx.beginPath();
+      ctx.ellipse(w * 0.75, h * 0.45, w * 0.2, h * 0.35, Math.PI / 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Industrial zone contour
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.05)';
+      ctx.beginPath();
+      ctx.rect(w * 0.28, h * 0.15, w * 0.25, h * 0.2);
+      ctx.fill();
+
+      renderNodesOverlay();
+    }
+
+    function renderNodesOverlay() {
+      const container = document.getElementById('map-nodes-layer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      SENSOR_NODES.forEach(node => {
+        if (currentMapFilter !== 'all' && node.type !== currentMapFilter) return;
+
+        const el = document.createElement('div');
+        el.className = 'map-node';
+        el.style.left = node.x + '%';
+        el.style.top = node.y + '%';
+
+        let color = '#10b981';
+        if (node.status === 'Watch') color = '#facc15';
+        if (node.status === 'Warning') color = '#f97316';
+        if (node.status === 'Critical') color = '#ef4444';
+        if (node.status === 'Offline') color = '#64748b';
+
+        let icon = '🌊';
+        if (node.type === 'Fire') icon = '🔥';
+        if (node.type === 'Air Quality') icon = '🌫️';
+
+        el.innerHTML = `
+          <div class="node-pin" style="background:${color}; color:#000;">
+            ${node.status === 'Critical' ? '<div class="node-pulse" style="color:' + color + '"></div>' : ''}
+            <span style="font-size:10px;">${icon}</span>
+          </div>
+          <div class="node-tag">${node.id}</div>
+        `;
+        el.onclick = () => openNodeModal(node);
+        container.appendChild(el);
+      });
+    }
+
+    function filterMap(type) {
+      currentMapFilter = type;
+      renderNodesOverlay();
+    }
+
+    // Active Alerts List
+    function renderAlertsList() {
+      const list = document.getElementById('alerts-container');
+      if (!list) return;
+      const alerts = [
+        { icon: '🔴', type: 'Flood risk', node: 'Node F-102', conf: '91% confidence', sec: 'Assam sector', cls: 'critical', dataId: 'F-102' },
+        { icon: '🔴', type: 'Fire hazard', node: 'Node W-205', conf: '89% confidence', sec: 'Namdapha Range', cls: 'critical', dataId: 'W-205' },
+        { icon: '🟠', type: 'Fire risk', node: 'Node W-204', conf: '74% confidence', sec: 'Western Ghats', cls: 'warning', dataId: 'W-204' },
+        { icon: '🟡', type: 'Air quality', node: 'Node A-301', conf: '62% confidence', sec: 'Industrial Belt', cls: 'watch', dataId: 'A-301' },
+        { icon: '🟡', type: 'Flood watch', node: 'Node F-104', conf: '85% confidence', sec: 'Majuli Reach', cls: 'watch', dataId: 'F-104' }
+      ];
+
+      list.innerHTML = alerts.map(a => `
+        <div class="alert-card ${a.cls}" onclick="openNodeModalById('${a.dataId}')">
+          <div class="alert-text">
+            <span>${a.icon}</span>
+            <span>${a.type} — ${a.node}</span>
+          </div>
+          <div class="alert-meta">
+            <span>${a.conf}</span>
+            <span class="mono">${a.sec}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Node Modal
+    function openNodeModalById(id) {
+      const n = SENSOR_NODES.find(x => x.id === id);
+      if (n) openNodeModal(n);
+    }
+
+    function openNodeModal(node) {
+      document.getElementById('modal-node-id').innerText = `${node.id} (${node.sector})`;
+      document.getElementById('modal-hazard-type').innerText = `${node.type} Sensor Node`;
+      
+      const hBadge = document.getElementById('modal-health');
+      hBadge.innerText = node.health;
+      hBadge.className = 'status-badge ' + (node.health === 'Normal' ? 'badge-normal' : (node.health === 'Suspicious' ? 'badge-warning' : 'badge-critical'));
+
+      document.getElementById('modal-confidence').innerText = node.conf > 0 ? `${node.conf}%` : 'N/A';
+      document.getElementById('modal-battery').innerText = `${node.bat}%`;
+      document.getElementById('modal-conn').innerText = node.status === 'Offline' ? 'OFFLINE (Timeout)' : 'LoRa OK (-78 dBm)';
+      document.getElementById('modal-readings').innerText = node.val;
+
+      drawModalSparkline(node);
+      document.getElementById('node-modal').classList.add('active');
+    }
+
+    function closeNodeModal(e) {
+      document.getElementById('node-modal').classList.remove('active');
+    }
+
+    function drawModalSparkline(node) {
+      const svg = document.getElementById('modal-sparkline');
+      if (!svg) return;
+      svg.innerHTML = '';
+
+      const pts = [];
+      let base = node.type === 'Flood' ? 1.5 : (node.type === 'Fire' ? 25 : 40);
+      for (let i = 0; i < 16; i++) {
+        let val = base + Math.sin(i * 0.5) * (node.status === 'Critical' ? 2 : 0.4) + (i > 11 && node.status === 'Critical' ? (i - 11) * 0.5 : 0);
+        pts.push(val);
+      }
+      const min = Math.min(...pts) * 0.9;
+      const max = Math.max(...pts) * 1.1;
+      const w = 440;
+      const h = 55;
+
+      const coords = pts.map((p, i) => {
+        const x = (i / (pts.length - 1)) * w;
+        const y = h - ((p - min) / (max - min || 1)) * (h - 10) - 5;
+        return `${x},${y}`;
+      });
+
+      const strokeColor = node.status === 'Critical' ? '#ef4444' : (node.status === 'Warning' ? '#f97316' : '#10b981');
+      svg.innerHTML = `
+        <polyline fill="none" stroke="${strokeColor}" stroke-width="2" points="${coords.join(' ')}"/>
+        ${coords.map(c => `<circle cx="${c.split(',')[0]}" cy="${c.split(',')[1]}" r="2.5" fill="${strokeColor}"/>`).join('')}
+      `;
+    }
+
+    // ==========================================
+    // TAB 2: DIGITAL TWIN SIMULATOR
+    // ==========================================
+    let simInterval = null;
+    let dtCurrentNode = 'F-102';
+
+    function onDtNodeChange(nodeId) {
+      dtCurrentNode = nodeId;
+      triggerScenario('reset');
+    }
+
+    function animateValue(elemId, start, end, duration, decimals = 1, unit = '') {
+      const elem = document.getElementById(elemId);
+      if (!elem) return;
+      const startTime = performance.now();
+      function step(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const current = start + (end - start) * progress;
+        elem.innerText = current.toFixed(decimals) + unit;
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function triggerScenario(scenario) {
+      if (simInterval) clearInterval(simInterval);
+
+      const siren = document.getElementById('dt-siren-banner');
+      const failBox = document.getElementById('dt-failure-box');
+      const rfSub = document.getElementById('dt-rf-subgraph-box');
+      const reasoning = document.getElementById('dt-reasoning-text');
+      const riskBadge = document.getElementById('val-risk-badge');
+
+      siren.style.display = 'none';
+      failBox.style.display = 'none';
+      rfSub.style.display = 'none';
+
+      if (scenario === 'reset') {
+        // Reset card labels for Flood default
+        document.getElementById('lbl-m1').innerText = 'Water Level';
+        document.getElementById('unit-m1').innerText = 'm';
+        document.getElementById('lbl-m2').innerText = 'Rise Rate';
+        document.getElementById('unit-m2').innerText = 'cm/10min';
+        document.getElementById('lbl-m3').innerText = 'Rainfall';
+        document.getElementById('unit-m3').innerText = 'mm/hr';
+        document.getElementById('lbl-m4').innerText = 'AI Flood Probability';
+        document.getElementById('lbl-m5').innerText = 'Confidence';
+
+        animateValue('val-m1', parseFloat(document.getElementById('val-m1').innerText) || 3.7, 1.84, 1500, 2);
+        animateValue('val-m2', parseFloat(document.getElementById('val-m2').innerText) || 12, 1.2, 1500, 1);
+        animateValue('val-m3', parseFloat(document.getElementById('val-m3').innerText) || 60, 4.5, 1500, 1);
+        animateValue('val-m4', parseInt(document.getElementById('val-m4').innerText) || 89, 8, 1500, 0, '%');
+        animateValue('val-m5', 90, 94, 1500, 0, '%');
+
+        riskBadge.className = 'status-badge badge-normal';
+        riskBadge.innerText = 'NORMAL';
+        document.getElementById('val-m4').style.color = 'var(--c-normal)';
+        reasoning.innerText = 'Water level 1.84m + rise rate +1.2cm/10min + rainfall 4.5mm/hr → hydro-fused probability 8% [Confidence 94%]. Catchment conditions normal.';
+        return;
+      }
+
+      if (scenario === 'rain') {
+        // Smooth transition over 6 seconds
+        const startProb = 8;
+        const targetProb = 89;
+        const duration = 6000;
+        const startTime = performance.now();
+
+        animateValue('val-m1', 1.84, 3.85, duration, 2);
+        animateValue('val-m2', 1.2, 14.8, duration, 1);
+        animateValue('val-m3', 4.5, 62.0, duration, 1);
+        animateValue('val-m4', 8, 89, duration, 0, '%');
+        animateValue('val-m5', 94, 91, duration, 0, '%');
+
+        function updateRainStep(now) {
+          const progress = Math.min((now - startTime) / duration, 1);
+          const p = Math.round(startProb + (targetProb - startProb) * progress);
+
+          if (p < 25) {
+            riskBadge.className = 'status-badge badge-normal';
+            riskBadge.innerText = 'NORMAL';
+            document.getElementById('val-m4').style.color = 'var(--c-normal)';
+          } else if (p < 55) {
+            riskBadge.className = 'status-badge badge-watch';
+            riskBadge.innerText = 'WATCH';
+            document.getElementById('val-m4').style.color = 'var(--c-watch)';
+            reasoning.innerText = `Catchment runoff surging: rainfall escalating to ${Math.round(4.5 + 57.5 * progress)}mm/hr. Probability ${p}%.`;
+          } else if (p < 75) {
+            riskBadge.className = 'status-badge badge-warning';
+            riskBadge.innerText = 'WARNING';
+            document.getElementById('val-m4').style.color = 'var(--c-warning)';
+            reasoning.innerText = `Rise rate +${(1.2 + 13.6 * progress).toFixed(1)}cm/10min exceeding riverbank levee thresholds. Risk Warning state.`;
+          } else {
+            riskBadge.className = 'status-badge badge-critical';
+            riskBadge.innerText = 'CRITICAL';
+            document.getElementById('val-m4').style.color = 'var(--c-critical)';
+            siren.style.display = 'flex';
+            reasoning.innerText = `CRITICAL FLOOD EVENT: Water level 3.85m + rise rate 14.8cm/10min + rainfall 62mm/hr → fused probability 89% [Confidence 91%]. Levee breach imminent downstream.`;
+          }
+
+          if (progress < 1) {
+            requestAnimationFrame(updateRainStep);
+          }
+        }
+        requestAnimationFrame(updateRainStep);
+      }
+
+      if (scenario === 'sensor-failure') {
+        // Abrupt jump
+        document.getElementById('val-m1').innerText = '0.20';
+        document.getElementById('val-m2').innerText = '-34.0';
+        document.getElementById('val-m4').innerText = 'ERR';
+        document.getElementById('val-m4').style.color = 'var(--c-critical)';
+        
+        riskBadge.className = 'status-badge badge-warning';
+        riskBadge.innerText = 'SUSPICIOUS';
+
+        setTimeout(() => {
+          riskBadge.className = 'status-badge badge-critical';
+          riskBadge.innerText = 'SENSOR FAILED';
+          failBox.style.display = 'block';
+          reasoning.innerText = '⚠️ SENSOR ANOMALY: Water level dropped 1.84m → 0.20m in <100ms. Exceeds max physical delta velocity (Δh/Δt > limit). Flagged untrusted. Maintenance ticket #T-9042 dispatched to field team.';
+        }, 800);
+      }
+
+      if (scenario === 'fire-rf') {
+        // Switch cards to Fire metrics
+        document.getElementById('lbl-m1').innerText = 'Temperature';
+        document.getElementById('unit-m1').innerText = '°C';
+        document.getElementById('lbl-m2').innerText = 'Humidity';
+        document.getElementById('unit-m2').innerText = '%';
+        document.getElementById('lbl-m3').innerText = 'Smoke / CO';
+        document.getElementById('unit-m3').innerText = 'ppm';
+        document.getElementById('lbl-m4').innerText = 'Fire Probability';
+        document.getElementById('lbl-m5').innerText = 'Confidence';
+
+        rfSub.style.display = 'block';
+        initMiniMeshSvg();
+
+        animateValue('val-m1', 28, 54, 4000, 1);
+        animateValue('val-m2', 65, 18, 4000, 0);
+        animateValue('val-m3', 8, 88, 4000, 0);
+        animateValue('val-m4', 12, 87, 4000, 0, '%');
+        document.getElementById('val-m4').style.color = 'var(--c-warning)';
+
+        riskBadge.className = 'status-badge badge-warning';
+        riskBadge.innerText = 'FIRE WARNING';
+
+        // Sequence link degradation
+        setTimeout(() => {
+          document.getElementById('dt-rf-l1').innerText = '-96 dBm (Degraded)';
+          document.getElementById('dt-rf-l1').style.color = '#fbbf24';
+          updateMiniMeshLine(0, '#f59e0b');
+        }, 1200);
+
+        setTimeout(() => {
+          document.getElementById('dt-rf-l2').innerText = '-108 dBm (Faded/Broken)';
+          document.getElementById('dt-rf-l2').style.color = '#ef4444';
+          updateMiniMeshLine(1, '#ef4444');
+          document.getElementById('dt-spread-indicator').style.display = 'inline-block';
+          riskBadge.className = 'status-badge badge-critical';
+          riskBadge.innerText = 'CRITICAL FIRE';
+          document.getElementById('val-m4').style.color = 'var(--c-critical)';
+          reasoning.innerText = 'Thermal RF scintillation detected: LoRa links W-201 & W-202 severely attenuated by ionized smoke plume. Vector analysis confirms fire front advancing NORTHEAST.';
+        }, 2800);
+
+        setTimeout(() => {
+          document.getElementById('dt-rf-l3').innerText = '-114 dBm (Packet Loss 90%)';
+          document.getElementById('dt-rf-l3').style.color = '#ef4444';
+          updateMiniMeshLine(2, '#ef4444');
+        }, 4200);
+      }
+    }
+
+    function initMiniMeshSvg() {
+      const svg = document.getElementById('dt-mini-mesh-svg');
+      if (!svg) return;
+      svg.innerHTML = `
+        <line id="mini-l0" x1="40" y1="70" x2="130" y2="40" stroke="#10b981" stroke-width="2"/>
+        <line id="mini-l1" x1="40" y1="70" x2="140" y2="100" stroke="#10b981" stroke-width="2"/>
+        <line id="mini-l2" x1="130" y1="40" x2="220" y2="50" stroke="#10b981" stroke-width="2"/>
+        <line id="mini-l3" x1="140" y1="100" x2="220" y2="90" stroke="#10b981" stroke-width="2"/>
+        
+        <circle cx="40" cy="70" r="10" fill="#f97316"/>
+        <text x="40" y="74" font-size="8" font-family="monospace" text-anchor="middle" fill="#fff">W204</text>
+        
+        <circle cx="130" cy="40" r="9" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+        <text x="130" y="43" font-size="8" font-family="monospace" text-anchor="middle" fill="#93c5fd">W201</text>
+        
+        <circle cx="140" cy="100" r="9" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+        <text x="140" y="103" font-size="8" font-family="monospace" text-anchor="middle" fill="#93c5fd">W202</text>
+        
+        <circle cx="220" cy="50" r="9" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+        <text x="220" y="53" font-size="8" font-family="monospace" text-anchor="middle" fill="#93c5fd">W203</text>
+        
+        <circle cx="220" cy="90" r="9" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+        <text x="220" y="93" font-size="8" font-family="monospace" text-anchor="middle" fill="#93c5fd">GW</text>
+      `;
+    }
+
+    function updateMiniMeshLine(index, color) {
+      const line = document.getElementById(`mini-l${index}`);
+      if (line) {
+        line.setAttribute('stroke', color);
+        if (color === '#ef4444') {
+          line.setAttribute('stroke-dasharray', '4,4');
+        }
+      }
+    }
+
+    // ==========================================
+    // TAB 3: RF MESH NETWORK VIEW
+    // ==========================================
+    const MESH_NODES = [
+      { id: 'N-01', x: 80,  y: 90,  name: 'Gateway Alpha' },
+      { id: 'N-02', x: 200, y: 70,  name: 'Ridge Station' },
+      { id: 'N-03', x: 130, y: 220, name: 'Valley East' },
+      { id: 'N-04', x: 260, y: 190, name: 'Creek Station' },
+      { id: 'N-05', x: 380, y: 100, name: 'Highlands' },
+      { id: 'N-06', x: 370, y: 260, name: 'Pine Reserve' },
+      { id: 'N-07', x: 490, y: 180, name: 'Canopy Tower' },
+      { id: 'N-08', x: 480, y: 340, name: 'Zone B-12 Front' },
+      { id: 'N-09', x: 590, y: 250, name: 'Buffer Post' },
+      { id: 'N-10', x: 610, y: 380, name: 'Perimeter East' }
+    ];
+
+    const MESH_LINKS = [
+      { from: 0, to: 1, rssi: -72, snr: 9.4 },
+      { from: 0, to: 2, rssi: -76, snr: 8.8 },
+      { from: 1, to: 3, rssi: -79, snr: 7.9 },
+      { from: 1, to: 4, rssi: -74, snr: 9.1 },
+      { from: 2, to: 3, rssi: -81, snr: 6.8 },
+      { from: 3, to: 5, rssi: -78, snr: 8.2 },
+      { from: 4, to: 6, rssi: -75, snr: 8.9 },
+      { from: 5, to: 6, rssi: -82, snr: 6.5 },
+      { from: 5, to: 7, rssi: -78, snr: 8.5 }, // N-08 link
+      { from: 6, to: 8, rssi: -77, snr: 8.7 },
+      { from: 7, to: 8, rssi: -80, snr: 7.6 }, // N-08 -> N-09
+      { from: 7, to: 9, rssi: -84, snr: 6.9 }, // N-08 -> N-10
+      { from: 8, to: 9, rssi: -79, snr: 8.1 }
+    ];
+
+    function renderMeshGraph() {
+      const svg = document.getElementById('rf-mesh-svg');
+      if (!svg) return;
+      svg.innerHTML = '';
+
+      // Render links
+      MESH_LINKS.forEach((lnk, idx) => {
+        const n1 = MESH_NODES[lnk.from];
+        const n2 = MESH_NODES[lnk.to];
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('id', `mesh-link-${idx}`);
+        line.setAttribute('x1', n1.x);
+        line.setAttribute('y1', n1.y);
+        line.setAttribute('x2', n2.x);
+        line.setAttribute('y2', n2.y);
+        line.setAttribute('stroke', '#10b981');
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('opacity', '0.7');
+
+        // Hover effect for RSSI
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        title.textContent = `Link ${n1.id} ↔ ${n2.id}: RSSI ${lnk.rssi} dBm, SNR ${lnk.snr} dB`;
+        line.appendChild(title);
+        svg.appendChild(line);
+
+        // Small midpoint label for key links
+        const mx = (n1.x + n2.x) / 2;
+        const my = (n1.y + n2.y) / 2;
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('id', `mesh-link-txt-${idx}`);
+        text.setAttribute('x', mx);
+        text.setAttribute('y', my - 4);
+        text.setAttribute('font-size', '9');
+        text.setAttribute('fill', '#64748b');
+        text.setAttribute('font-family', 'monospace');
+        text.setAttribute('text-anchor', 'middle');
+        text.textContent = `${lnk.rssi}dBm`;
+        svg.appendChild(text);
+      });
+
+      // Render nodes
+      MESH_NODES.forEach((n, idx) => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('id', `mesh-node-g-${idx}`);
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('id', `mesh-node-circle-${idx}`);
+        circle.setAttribute('cx', n.x);
+        circle.setAttribute('cy', n.y);
+        circle.setAttribute('r', idx === 0 ? '14' : '11');
+        circle.setAttribute('fill', idx === 0 ? '#1e3a8a' : '#0f172a');
+        circle.setAttribute('stroke', idx === 0 ? '#60a5fa' : '#34d399');
+        circle.setAttribute('stroke-width', '2.5');
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', n.x);
+        text.setAttribute('y', n.y + 4);
+        text.setAttribute('font-size', '10');
+        text.setAttribute('font-weight', '700');
+        text.setAttribute('font-family', 'monospace');
+        text.setAttribute('fill', '#fff');
+        text.setAttribute('text-anchor', 'middle');
+        text.textContent = n.id;
+
+        const sub = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        sub.setAttribute('x', n.x);
+        sub.setAttribute('y', n.y + 20);
+        sub.setAttribute('font-size', '9');
+        sub.setAttribute('fill', '#94a3b8');
+        sub.setAttribute('text-anchor', 'middle');
+        sub.textContent = n.name;
+
+        g.appendChild(circle);
+        g.appendChild(text);
+        g.appendChild(sub);
+        svg.appendChild(g);
+      });
+    }
+
+    // Heartbeat Logging
+    let hbTimer = null;
+    function startHeartbeats() {
+      if (hbTimer) clearInterval(hbTimer);
+      const logBox = document.getElementById('heartbeat-log-box');
+      if (!logBox) return;
+
+      const baseLogs = [
+        '10:32:01 — Node N-07 heartbeat OK — RSSI -78dBm',
+        '10:32:15 — Node N-04 heartbeat OK — RSSI -81dBm',
+        '10:32:30 — Node N-06 heartbeat OK — RSSI -82dBm',
+        '10:32:45 — Node N-08 heartbeat MISSED — 2nd consecutive',
+        '10:33:02 — Node N-08 → OFFLINE — last-gasp packet received: temp=61°C'
+      ];
+      logBox.innerHTML = baseLogs.map(l => {
+        let cls = 'log-ok';
+        if (l.includes('MISSED')) cls = 'log-warn';
+        if (l.includes('OFFLINE')) cls = 'log-crit';
+        return `<div class="log-line ${cls}">${l}</div>`;
+      }).join('');
+
+      // Add periodic live simulated heartbeats
+      hbTimer = setInterval(() => {
+        const nodes = ['N-01', 'N-02', 'N-03', 'N-04', 'N-05', 'N-06', 'N-07'];
+        const rNode = nodes[Math.floor(Math.random() * nodes.length)];
+        const rssi = -70 - Math.floor(Math.random() * 20);
+        const time = new Date().toISOString().slice(11, 19);
+        const div = document.createElement('div');
+        div.className = 'log-line log-ok';
+        div.innerText = `${time} — Node ${rNode} heartbeat OK — RSSI ${rssi}dBm`;
+        logBox.prepend(div);
+        if (logBox.children.length > 35) logBox.removeChild(logBox.lastChild);
+      }, 4000);
+    }
+
+    function triggerFireEventMesh() {
+      const banner = document.getElementById('mesh-spread-banner');
+      banner.style.display = 'block';
+
+      const logBox = document.getElementById('heartbeat-log-box');
+      const time = new Date().toISOString().slice(11, 19);
+
+      // Stage 1: Degrade Node N-08 (index 7)
+      const c8 = document.getElementById('mesh-node-circle-7');
+      if (c8) {
+        c8.setAttribute('stroke', '#ef4444');
+        c8.setAttribute('fill', 'rgba(239, 68, 68, 0.3)');
+      }
+      [8, 10, 11].forEach(idx => {
+        const l = document.getElementById(`mesh-link-${idx}`);
+        if (l) {
+          l.setAttribute('stroke', '#ef4444');
+          l.setAttribute('stroke-dasharray', '5,5');
+        }
+      });
+      logBox.innerHTML = `<div class="log-line log-crit">${time} — [FIRE FRONT DETECTED] Node N-08 thermal ionization active — RSSI collapsed to -118dBm</div>` + logBox.innerHTML;
+
+      // Stage 2: Degrade N-09 after 2s
+      setTimeout(() => {
+        const c9 = document.getElementById('mesh-node-circle-8');
+        if (c9) {
+          c9.setAttribute('stroke', '#f97316');
+          c9.setAttribute('fill', 'rgba(249, 115, 22, 0.3)');
+        }
+        const l12 = document.getElementById('mesh-link-12');
+        if (l12) {
+          l12.setAttribute('stroke', '#f97316');
+          l12.setAttribute('stroke-dasharray', '4,4');
+        }
+        const t2 = new Date().toISOString().slice(11, 19);
+        logBox.innerHTML = `<div class="log-line log-warn">${t2} — Node N-09 link degradation — smoke drift detected along bearing 42° (NE)</div>` + logBox.innerHTML;
+      }, 2000);
+
+      // Stage 3: Degrade N-10 after 4s
+      setTimeout(() => {
+        const c10 = document.getElementById('mesh-node-circle-9');
+        if (c10) {
+          c10.setAttribute('stroke', '#f97316');
+          c10.setAttribute('fill', 'rgba(249, 115, 22, 0.3)');
+        }
+        const t3 = new Date().toISOString().slice(11, 19);
+        logBox.innerHTML = `<div class="log-line log-warn">${t3} — Node N-10 link SNR dropped below 2.0dB — spread direction NE confirmed by Rothermel model</div>` + logBox.innerHTML;
+      }, 4000);
+    }
+
+    // ==========================================
+    // TAB 4: ADVANCED: RF TOMOGRAPHY ENGINE
+    // ==========================================
+    function renderTomographyMesh() {
+      const svg = document.getElementById('tomo-mesh-svg');
+      if (!svg) return;
+      svg.innerHTML = '';
+
+      // 4 nodes in square
+      // Node 1: (120, 50), Node 2: (380, 50), Node 3: (380, 230), Node 4: (120, 230)
+      const nodes = [
+        { id: 'Node 1', x: 130, y: 60 },
+        { id: 'Node 2', x: 370, y: 60 },
+        { id: 'Node 3', x: 370, y: 220 },
+        { id: 'Node 4', x: 130, y: 220 }
+      ];
+
+      // 6 links (Full mesh)
+      const links = [
+        [0, 1], [1, 2], [2, 3], [3, 0], [0, 2], [1, 3]
+      ];
+
+      links.forEach((lnk, i) => {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('id', `tomo-link-${i}`);
+        line.setAttribute('x1', nodes[lnk[0]].x);
+        line.setAttribute('y1', nodes[lnk[0]].y);
+        line.setAttribute('x2', nodes[lnk[1]].x);
+        line.setAttribute('y2', nodes[lnk[1]].y);
+        line.setAttribute('stroke', '#a855f7');
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('opacity', '0.6');
+        svg.appendChild(line);
+      });
+
+      // Dashed connector arrow to Pre-Ignition box
+      const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      arrow.setAttribute('d', 'M 50 60 L 110 60');
+      arrow.setAttribute('stroke', '#ef4444');
+      arrow.setAttribute('stroke-width', '2');
+      arrow.setAttribute('stroke-dasharray', '4,4');
+      svg.appendChild(arrow);
+
+      const arrowTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      arrowTxt.setAttribute('x', '75');
+      arrowTxt.setAttribute('y', '50');
+      arrowTxt.setAttribute('font-size', '8');
+      arrowTxt.setAttribute('fill', '#fca5a5');
+      arrowTxt.setAttribute('text-anchor', 'middle');
+      arrowTxt.textContent = 'Periodic Sensing';
+      svg.appendChild(arrowTxt);
+
+      nodes.forEach((n, i) => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('id', `tomo-node-${i}`);
+        circle.setAttribute('cx', n.x);
+        circle.setAttribute('cy', n.y);
+        circle.setAttribute('r', '14');
+        circle.setAttribute('fill', '#2e1065');
+        circle.setAttribute('stroke', '#c084fc');
+        circle.setAttribute('stroke-width', '2.5');
+
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        title.setAttribute('x', n.x);
+        title.setAttribute('y', n.y + 4);
+        title.setAttribute('font-size', '10');
+        title.setAttribute('font-weight', '700');
+        title.setAttribute('fill', '#fff');
+        title.setAttribute('text-anchor', 'middle');
+        title.textContent = n.id;
+
+        const sub = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        sub.setAttribute('x', n.x);
+        sub.setAttribute('y', i < 2 ? n.y - 20 : n.y + 26);
+        sub.setAttribute('font-size', '8');
+        sub.setAttribute('fill', '#cbd5e1');
+        sub.setAttribute('text-anchor', 'middle');
+        sub.textContent = 'Sense environment | Transmit data';
+
+        g.appendChild(circle);
+        g.appendChild(title);
+        g.appendChild(sub);
+        svg.appendChild(g);
+      });
+    }
+
+    function renderTomoHeatmap(intensity = 0.1) {
+      const canvas = document.getElementById('tomo-heatmap-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const gridSize = 8;
+      const cellW = w / gridSize;
+      const cellH = h / gridSize;
+
+      for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+          // Distance to Node 1 (top-left, approx r:1, c:1)
+          const dist = Math.hypot(r - 1, c - 1);
+          let cellVal = Math.max(0, 1 - dist / 5) * intensity;
+          cellVal += (Math.random() * 0.08);
+
+          // Color interpolate green -> yellow -> red
+          let red = Math.min(255, Math.floor(cellVal * 255 * 1.8));
+          let green = Math.min(255, Math.floor((1 - cellVal * 0.7) * 200));
+          let blue = 50;
+
+          ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+          ctx.fillRect(c * cellW, r * cellH, cellW - 1, cellH - 1);
+        }
+      }
+    }
+
+    function renderTomoMatrix() {
+      const container = document.getElementById('tomo-matrix-display');
+      if (!container) return;
+      container.innerHTML = '';
+      for (let i = 0; i < 16; i++) {
+        const div = document.createElement('div');
+        div.className = 'matrix-cell';
+        div.id = `m-cell-${i}`;
+        div.innerText = (0.2 + (i % 4) * 0.15 + Math.random() * 0.05).toFixed(2);
+        container.appendChild(div);
+      }
+    }
+
+    // Jitter live flutter
+    setInterval(() => {
+      const jEl = document.getElementById('tomo-rf-jitter');
+      if (jEl && !isPreIgnitionActive) {
+        const val = 5 + Math.random() * 9.5;
+        jEl.innerText = val.toFixed(1) + ' Hz';
+      }
+    }, 1500);
+
+    let isPreIgnitionActive = false;
+
+    function triggerPreIgnitionEvent() {
+      isPreIgnitionActive = true;
+
+      // 1. Animate RF Jitter & Gas pulse past threshold
+      animateValue('tomo-rf-jitter', 7.4, 28.6, 2000, 1, ' Hz');
+      animateValue('tomo-gas-pulse', 4, 38, 2000, 0, ' ppm');
+
+      // 2. Vector shifts
+      const vectorVals = ['-4.8', '+3.9', '-5.2', '+2.1', '-6.7', '+1.8'];
+      vectorVals.forEach((val, idx) => {
+        const cell = document.getElementById(`vc-${idx}`);
+        if (cell) {
+          cell.innerText = val;
+          cell.classList.add('active-shift');
+        }
+      });
+
+      // Subtle matrix shifts
+      for (let i = 0; i < 16; i++) {
+        const c = document.getElementById(`m-cell-${i}`);
+        if (c) c.innerText = (1.1 + Math.random() * 0.8).toFixed(2);
+      }
+
+      // 3. Heatmap intensifies
+      renderTomoHeatmap(0.95);
+
+      // 4. Flip Hazard badge
+      const badge = document.getElementById('tomo-hazard-badge');
+      badge.className = 'status-badge badge-critical';
+      badge.innerText = 'YES — Hazard Detected (Fire / Flood Risk)';
+
+      // 5. LoRaWAN Packet transit
+      const packet = document.getElementById('tomo-packet');
+      packet.style.left = 'calc(100% - 160px)';
+
+      // 6. Central Dashboard Box lights up
+      setTimeout(() => {
+        const box = document.getElementById('tomo-central-box');
+        box.classList.add('lit-up');
+        document.getElementById('tomo-central-status').innerHTML = `
+          <div style="color:#fbcfe8; font-weight:700;">✅ Real-time 2D Heatmap Updated</div>
+          <div style="color:#f472b6; font-weight:700; margin-top:2px;">🚨 Automated NDMA CAP Alert Sent — SMS Sirens Activated</div>
+        `;
+      }, 2500);
+    }
+
+    function resetPreIgnitionEvent() {
+      isPreIgnitionActive = false;
+      document.getElementById('tomo-rf-jitter').innerText = '7.4 Hz';
+      document.getElementById('tomo-gas-pulse').innerText = '4 ppm';
+
+      const baseVals = ['-0.2', '+0.1', '-0.3', '+0.0', '-0.1', '+0.2'];
+      baseVals.forEach((val, idx) => {
+        const cell = document.getElementById(`vc-${idx}`);
+        if (cell) {
+          cell.innerText = val;
+          cell.classList.remove('active-shift');
+        }
+      });
+
+      renderTomoMatrix();
+      renderTomoHeatmap(0.1);
+
+      const badge = document.getElementById('tomo-hazard-badge');
+      badge.className = 'status-badge badge-normal';
+      badge.innerText = 'NO — Continue Monitoring';
+
+      const packet = document.getElementById('tomo-packet');
+      packet.style.left = '6px';
+
+      const box = document.getElementById('tomo-central-box');
+      box.classList.remove('lit-up');
+      document.getElementById('tomo-central-status').innerText = 'Waiting for anomalous packet reception...';
+    }
+
+    // Init on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderMapGrid();
+      renderAlertsList();
+      startHeartbeats();
+    });
+
+    window.addEventListener('resize', () => {
+      renderMapGrid();
+    });
+  </script>
+</body>
+</html>

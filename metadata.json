@@ -1,0 +1,6 @@
+{
+  "name": "EIN — Environmental Intelligence Network",
+  "description": "Interactive disaster-monitoring IoT dashboard featuring live risk mapping, digital twin simulation, RF mesh fire detection, and volumetric RF tomography engine.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
